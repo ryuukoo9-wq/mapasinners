@@ -1,3 +1,14 @@
+// ============ CONFIGURAÇÃO FIREBASE ============
+const firebaseConfig = {
+	databaseURL: "https://mapasinners-default-rtdb.firebaseio.com/"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const pontosRef = database.ref('pontos');
+
+// ============ FIM CONFIGURAÇÃO FIREBASE ============
+
 // ============ SISTEMA DE AUTENTICAÇÃO ============
 const SENHA_CORRETA = '3321';
 let usuarioAutenticado = false;
@@ -177,57 +188,55 @@ const tiposIcones = {
 // Array global para rastrear temporizadores
 let temporizadores = {};
 
-// Carrega pontos do localStorage
+// Carrega pontos do Firebase
 function carregarPontosSalvos() {
-	const pontosSalvos = localStorage.getItem('mapasinners_pontos');
-	if (pontosSalvos) {
-		try {
-			const pontos = JSON.parse(pontosSalvos);
-			pontos.forEach(ponto => {
+	pontosRef.on('value', (snapshot) => {
+		const dados = snapshot.val();
+		if (dados) {
+			// Limpa markers antigos
+			if (window.pontosGlobais) {
+				Object.keys(window.pontosGlobais).forEach(key => {
+					const ponto = window.pontosGlobais[key];
+					if (ponto.marker && mymap.hasLayer(ponto.marker)) {
+						mymap.removeLayer(ponto.marker);
+					}
+					if (temporizadores[key]) {
+						clearInterval(temporizadores[key]);
+					}
+				});
+			}
+			window.pontosGlobais = {};
+			temporizadores = {};
+			
+			// Carrega novos pontos
+			Object.keys(dados).forEach(chave => {
+				const ponto = dados[chave];
 				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, ponto.tempo || 0);
 			});
-		} catch (error) {
-			console.log('Erro ao carregar pontos do localStorage:', error);
 		}
-	}
+	});
 }
 
-// Salva um ponto no localStorage
+// Salva um ponto no Firebase
 function salvarPonto(lat, lng, tipo, descricao, tempo = 0) {
-	const pontosSalvos = localStorage.getItem('mapasinners_pontos');
-	let pontos = [];
-	
-	if (pontosSalvos) {
-		try {
-			pontos = JSON.parse(pontosSalvos);
-		} catch (error) {
-			console.log('Erro ao parsear pontos:', error);
-		}
-	}
-	
-	// Verifica se ponto já existe
-	const index = pontos.findIndex(p => p.lat === lat && p.lng === lng && p.tipo === tipo);
-	if (index === -1) {
-		pontos.push({ lat, lng, tipo, descricao, tempo });
-	} else {
-		pontos[index] = { lat, lng, tipo, descricao, tempo };
-	}
-	
-	localStorage.setItem('mapasinners_pontos', JSON.stringify(pontos));
+	const chave = `${lat.toFixed(2)}-${lng.toFixed(2)}-${tipo}`;
+	pontosRef.child(chave).set({
+		lat,
+		lng,
+		tipo,
+		descricao,
+		tempo
+	}).catch(error => {
+		console.log('Erro ao salvar ponto:', error);
+	});
 }
 
-// Remove um ponto do localStorage
+// Remove um ponto do Firebase
 function removerPontoSalvo(lat, lng, tipo) {
-	const pontosSalvos = localStorage.getItem('mapasinners_pontos');
-	if (pontosSalvos) {
-		try {
-			let pontos = JSON.parse(pontosSalvos);
-			pontos = pontos.filter(p => !(p.lat === lat && p.lng === lng && p.tipo === tipo));
-			localStorage.setItem('mapasinners_pontos', JSON.stringify(pontos));
-		} catch (error) {
-			console.log('Erro ao remover ponto:', error);
-		}
-	}
+	const chave = `${lat.toFixed(2)}-${lng.toFixed(2)}-${tipo}`;
+	pontosRef.child(chave).remove().catch(error => {
+		console.log('Erro ao remover ponto:', error);
+	});
 }
 
 // Adiciona um ponto ao mapa
