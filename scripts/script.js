@@ -251,7 +251,8 @@ function carregarPontosSalvos() {
 					tempoRestante = Math.max(0, ponto.tempo - tempoDecorrido);
 				}
 				
-				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempoRestante);
+				// Passa o timestamp original para manter sincronizado
+				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempoRestante, ponto.timestamp);
 			});
 		}
 	});
@@ -311,10 +312,16 @@ function roubarVeiculo(markerKey) {
 }
 
 // Adiciona um ponto ao mapa
-function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0) {
+function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, timestampInicial = null) {
 	const markerKey = `${lat}-${lng}-${tipo}`;
 	let tempoRestante = tempoInicial;
 	let marker;
+	
+	// Se tem timestamp, recalcula o tempo restante
+	if (timestampInicial && tempoInicial > 0) {
+		const tempoDecorrido = Math.floor((Date.now() - timestampInicial) / 1000);
+		tempoRestante = Math.max(0, tempoInicial - tempoDecorrido);
+	}
 	
 	// Dados do ponto
 	const dadosPonto = {
@@ -388,6 +395,7 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0) 
 		lat,
 		lng,
 		descricao,
+		timestamp: timestampInicial,
 		tempoRestante: () => tempoRestante,
 		setTempo: (novoTempo) => {
 			// Cancela temporizador anterior
