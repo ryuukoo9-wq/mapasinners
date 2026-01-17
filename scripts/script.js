@@ -205,6 +205,13 @@ const tiposIcones = {
 	"NPC": 4         // Usa a imagem blips/4.png
 };
 
+// Função para formatar tempo em MM:SS
+function formatarTempo(segundos) {
+	const minutos = Math.floor(segundos / 60);
+	const secs = segundos % 60;
+	return `${minutos},${secs.toString().padStart(2, '0')}`;
+}
+
 // Array global para rastrear temporizadores
 let temporizadores = {};
 
@@ -276,6 +283,20 @@ function removerPontoSalvo(lat, lng, tipo) {
 	});
 }
 
+// Função para roubar carro/ATM (15 minutos = 900 segundos)
+function roubarVeiculo(markerKey) {
+	const ponto = window.pontosGlobais?.[markerKey];
+	if (!ponto) return;
+	
+	const tempoRoubo = 900; // 15 minutos em segundos
+	ponto.setTempo(tempoRoubo);
+	
+	// Salva no Firebase
+	salvarPonto(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempoRoubo);
+	
+	alert(`${ponto.tipo} roubado! ⏱️ ${formatarTempo(tempoRoubo)}`);
+}
+
 // Adiciona um ponto ao mapa
 function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0) {
 	const markerKey = `${lat}-${lng}-${tipo}`;
@@ -299,8 +320,10 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0) 
 		
 		if (tipo !== 'NPC') {
 			const corTempo = tempoRestante === 0 ? '#00AA00' : '#FF4444';
+			const tempoFormatado = formatarTempo(tempoRestante);
 			popupContent += `
-				<strong style="color: ${corTempo};">⏱️ Tempo: ${tempoRestante}s</strong><br>
+				<strong style="color: ${corTempo};">⏱️ Tempo: ${tempoFormatado}</strong><br>
+				<button onclick="roubarVeiculo('${markerKey}')" style="padding: 5px 10px; background: #FF9800; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px 2px 0 0;">🚗 Roubar</button>
 				<button onclick="editarTempo('${markerKey}')" style="padding: 5px 10px; background: #2196F3; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px 2px 0 0;">✏️ Editar</button>
 			`;
 		}
@@ -418,7 +441,8 @@ function editarTempo(markerKey) {
 	const ponto = window.pontosGlobais?.[markerKey];
 	if (!ponto) return;
 	
-	const novoTempo = prompt(`Editar tempo para ${ponto.tipo}:\n(Digite o tempo em segundos)`, ponto.tempoRestante());
+	const tempoAtual = formatarTempo(ponto.tempoRestante());
+	const novoTempo = prompt(`Editar tempo para ${ponto.tipo}:\n(Digite em segundos)\nTempo atual: ${tempoAtual}`, ponto.tempoRestante());
 	
 	if (novoTempo !== null) {
 		const tempo = parseInt(novoTempo);
@@ -429,7 +453,7 @@ function editarTempo(markerKey) {
 		
 		ponto.setTempo(tempo);
 		
-		// Salva no localStorage
+		// Salva no Firebase
 		salvarPonto(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempo);
 	}
 }
