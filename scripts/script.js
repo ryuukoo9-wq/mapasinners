@@ -243,7 +243,15 @@ function carregarPontosSalvos() {
 			// Carrega novos pontos
 			Object.keys(dados).forEach(chave => {
 				const ponto = dados[chave];
-				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, ponto.tempo || 0);
+				let tempoRestante = ponto.tempo || 0;
+				
+				// Se tem timestamp, calcula o tempo restante global
+				if (ponto.timestamp && ponto.tempo > 0) {
+					const tempoDecorrido = Math.floor((Date.now() - ponto.timestamp) / 1000);
+					tempoRestante = Math.max(0, ponto.tempo - tempoDecorrido);
+				}
+				
+				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempoRestante);
 			});
 		}
 	});
@@ -258,12 +266,17 @@ function salvarPonto(lat, lng, tipo, descricao, tempo = 0) {
 	
 	// Cria chave válida para Firebase (sem pontos)
 	const chave = `${Math.round(lat*100)}_${Math.round(lng*100)}_${tipo}`;
+	
+	// Se tem tempo, salva o timestamp de quando foi roubado
+	const timestamp = tempo > 0 ? Date.now() : null;
+	
 	pontosRef.child(chave).set({
 		lat,
 		lng,
 		tipo,
 		descricao,
-		tempo
+		tempo,
+		timestamp // Timestamp global para sincronização
 	}).catch(error => {
 		console.log('Erro ao salvar ponto:', error);
 	});
