@@ -177,26 +177,57 @@ const tiposIcones = {
 // Array global para rastrear temporizadores
 let temporizadores = {};
 
-// Carrega pontos do arquivo JSON
+// Carrega pontos do localStorage
 function carregarPontosSalvos() {
-	fetch('pontos.json')
-		.then(response => response.json())
-		.then(data => {
-			data.pontos.forEach(ponto => {
+	const pontosSalvos = localStorage.getItem('mapasinners_pontos');
+	if (pontosSalvos) {
+		try {
+			const pontos = JSON.parse(pontosSalvos);
+			pontos.forEach(ponto => {
 				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, ponto.tempo || 0);
 			});
-		})
-		.catch(error => {
-			console.log('Arquivo pontos.json não encontrado ou erro ao carregar:', error);
-		});
+		} catch (error) {
+			console.log('Erro ao carregar pontos do localStorage:', error);
+		}
+	}
 }
 
-// Salva um ponto no arquivo JSON (backend necessário para funcionamento completo)
+// Salva um ponto no localStorage
 function salvarPonto(lat, lng, tipo, descricao, tempo = 0) {
-	// Para usar com backend, seria necessário um servidor
-	// Por enquanto, apenas loga no console
-	console.log('Ponto adicionado:', { lat, lng, tipo, descricao, tempo });
-	console.log('Para persistir, adicione manualmente ao arquivo pontos.json');
+	const pontosSalvos = localStorage.getItem('mapasinners_pontos');
+	let pontos = [];
+	
+	if (pontosSalvos) {
+		try {
+			pontos = JSON.parse(pontosSalvos);
+		} catch (error) {
+			console.log('Erro ao parsear pontos:', error);
+		}
+	}
+	
+	// Verifica se ponto já existe
+	const index = pontos.findIndex(p => p.lat === lat && p.lng === lng && p.tipo === tipo);
+	if (index === -1) {
+		pontos.push({ lat, lng, tipo, descricao, tempo });
+	} else {
+		pontos[index] = { lat, lng, tipo, descricao, tempo };
+	}
+	
+	localStorage.setItem('mapasinners_pontos', JSON.stringify(pontos));
+}
+
+// Remove um ponto do localStorage
+function removerPontoSalvo(lat, lng, tipo) {
+	const pontosSalvos = localStorage.getItem('mapasinners_pontos');
+	if (pontosSalvos) {
+		try {
+			let pontos = JSON.parse(pontosSalvos);
+			pontos = pontos.filter(p => !(p.lat === lat && p.lng === lng && p.tipo === tipo));
+			localStorage.setItem('mapasinners_pontos', JSON.stringify(pontos));
+		} catch (error) {
+			console.log('Erro ao remover ponto:', error);
+		}
+	}
 }
 
 // Adiciona um ponto ao mapa
@@ -318,13 +349,21 @@ function removerPonto(markerKey) {
 		delete temporizadores[markerKey];
 	}
 	
+	// Obtém dados do ponto antes de remover
+	const ponto = window.pontosGlobais?.[markerKey];
+	
 	// Remove dados globais
 	if (window.pontosGlobais && window.pontosGlobais[markerKey]) {
 		delete window.pontosGlobais[markerKey];
 	}
 	
+	// Remove do localStorage
+	if (ponto) {
+		removerPontoSalvo(ponto.lat, ponto.lng, ponto.tipo);
+	}
+	
 	// Recarrega a página para atualizar
-	alert('Ponto deletado! Recarregando mapa...');
+	alert('Ponto deletado!');
 	location.reload();
 }
 
@@ -343,6 +382,9 @@ function editarTempo(markerKey) {
 		}
 		
 		ponto.setTempo(tempo);
+		
+		// Salva no localStorage
+		salvarPonto(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempo);
 	}
 }
 
