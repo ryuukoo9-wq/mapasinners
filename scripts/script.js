@@ -1,11 +1,31 @@
 // ============ CONFIGURAÇÃO FIREBASE ============
-const firebaseConfig = {
-	databaseURL: "https://mapasinners-default-rtdb.firebaseio.com/"
-};
+let database;
+let pontosRef;
 
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const pontosRef = database.ref('pontos');
+// Inicializa Firebase quando estiver pronto
+function inicializarFirebase() {
+	if (typeof firebase === 'undefined') {
+		setTimeout(inicializarFirebase, 100);
+		return;
+	}
+	
+	const firebaseConfig = {
+		databaseURL: "https://mapasinners-default-rtdb.firebaseio.com/"
+	};
+	
+	try {
+		firebase.initializeApp(firebaseConfig);
+		database = firebase.database();
+		pontosRef = database.ref('pontos');
+		console.log('Firebase inicializado com sucesso');
+	} catch (error) {
+		console.log('Firebase já foi inicializado ou erro:', error);
+		database = firebase.database();
+		pontosRef = database.ref('pontos');
+	}
+}
+
+inicializarFirebase();
 
 // ============ FIM CONFIGURAÇÃO FIREBASE ============
 
@@ -190,6 +210,11 @@ let temporizadores = {};
 
 // Carrega pontos do Firebase
 function carregarPontosSalvos() {
+	if (!pontosRef) {
+		setTimeout(carregarPontosSalvos, 500);
+		return;
+	}
+	
 	pontosRef.on('value', (snapshot) => {
 		const dados = snapshot.val();
 		if (dados) {
@@ -219,7 +244,13 @@ function carregarPontosSalvos() {
 
 // Salva um ponto no Firebase
 function salvarPonto(lat, lng, tipo, descricao, tempo = 0) {
-	const chave = `${lat.toFixed(2)}-${lng.toFixed(2)}-${tipo}`;
+	if (!pontosRef) {
+		console.log('Firebase ainda não inicializado');
+		return;
+	}
+	
+	// Cria chave válida para Firebase (sem pontos)
+	const chave = `${Math.round(lat*100)}_${Math.round(lng*100)}_${tipo}`;
 	pontosRef.child(chave).set({
 		lat,
 		lng,
@@ -233,7 +264,13 @@ function salvarPonto(lat, lng, tipo, descricao, tempo = 0) {
 
 // Remove um ponto do Firebase
 function removerPontoSalvo(lat, lng, tipo) {
-	const chave = `${lat.toFixed(2)}-${lng.toFixed(2)}-${tipo}`;
+	if (!pontosRef) {
+		console.log('Firebase ainda não inicializado');
+		return;
+	}
+	
+	// Cria chave válida para Firebase (sem pontos)
+	const chave = `${Math.round(lat*100)}_${Math.round(lng*100)}_${tipo}`;
 	pontosRef.child(chave).remove().catch(error => {
 		console.log('Erro ao remover ponto:', error);
 	});
