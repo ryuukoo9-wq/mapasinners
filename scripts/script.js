@@ -158,12 +158,14 @@ var SateliteStyle = L.tileLayer('mapStyles/styleSatelite/{z}/{x}/{y}.jpg', {minZ
 
 var ExampleGroup = L.layerGroup();
 var CarrosGroup = L.layerGroup();
+var MinivanGroup = L.layerGroup();
 var ATMGroup = L.layerGroup();
 var NPCGroup = L.layerGroup();
 
 var Icons = {
 	"Example": ExampleGroup,
 	"Carro": CarrosGroup,
+	"Minivan": MinivanGroup,
 	"ATM": ATMGroup,
 	"NPC": NPCGroup,
 };
@@ -175,7 +177,7 @@ var mymap = L.map('map', {
     Zoom: 5,
     maxNativeZoom: 5,
     preferCanvas: true,
-    layers: [AtlasStyle, ExampleGroup, CarrosGroup, ATMGroup, NPCGroup],
+    layers: [AtlasStyle, ExampleGroup, CarrosGroup, MinivanGroup, ATMGroup, NPCGroup],
     center: [0, 0],
     zoom: 3,
 });
@@ -201,6 +203,9 @@ function criarIconeCustomizado(tipo, tempoDisponivel = true) {
 	switch(tipo) {
 		case 'Carro':
 			emoji = '🚗';
+			break;
+		case 'Minivan':
+			emoji = '🚐';
 			break;
 		case 'ATM':
 			emoji = '🏧';
@@ -424,7 +429,7 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, 
 		.bindPopup(atualizarPopup());
 	
 	// Inicia o temporizador se for Carro ou ATM com tempo restante
-	if ((tipo === 'Carro' || tipo === 'ATM') && tempoRestante > 0) {
+	if ((tipo === 'Carro' || tipo === 'Minivan' || tipo === 'ATM') && tempoRestante > 0) {
 		const timerInterval = setInterval(() => {
 			tempoRestante--;
 			
@@ -475,7 +480,7 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, 
 			marker.setIcon(novoIcone);
 			
 			// Inicia novo temporizador se necessário
-			if ((tipo === 'Carro' || tipo === 'ATM') && novoTempo > 0) {
+			if ((tipo === 'Carro' || tipo === 'Minivan' || tipo === 'ATM') && novoTempo > 0) {
 				const timerInterval = setInterval(() => {
 					tempoRestante--;
 					atualizarPopup();
@@ -569,6 +574,7 @@ function criarModalCadastro(lat, lng) {
 			<strong>Tipo:</strong><br>
 			<select id="tipoPonto" style="width: 100%; padding: 8px; margin-top: 5px;" onchange="mostrarTempoInput()">
 				<option value="Carro">🚗 Carro</option>
+				<option value="Minivan">🚐 Minivan</option>
 				<option value="ATM">🏧 ATM</option>
 				<option value="NPC">👤 NPC</option>
 			</select>
@@ -601,7 +607,7 @@ function mostrarTempoInput() {
 	const tipo = document.getElementById('tipoPonto')?.value;
 	const labelTempo = document.getElementById('labelTempo');
 	if (labelTempo) {
-		if (tipo === 'Carro' || tipo === 'ATM') {
+		if (tipo === 'Carro' || tipo === 'Minivan' || tipo === 'ATM') {
 			labelTempo.style.display = 'block';
 		} else {
 			labelTempo.style.display = 'none';
@@ -644,6 +650,7 @@ function abrirModalAdicionar() {
 			<strong>Tipo:</strong><br>
 			<select id="tipoAdicionarPonto" style="width: 100%; padding: 8px; margin-top: 5px;" onchange="mostrarTempoInputAdicionar()">
 				<option value="Carro">🚗 Carro</option>
+				<option value="Minivan">🚐 Minivan</option>
 				<option value="ATM">🏧 ATM</option>
 				<option value="NPC">👤 NPC</option>
 			</select>
@@ -672,7 +679,7 @@ function mostrarTempoInputAdicionar() {
 	const tipo = document.getElementById('tipoAdicionarPonto')?.value;
 	const labelTempo = document.getElementById('labelTempoAdicionar');
 	if (labelTempo) {
-		if (tipo === 'Carro' || tipo === 'ATM') {
+		if (tipo === 'Carro' || tipo === 'Minivan' || tipo === 'ATM') {
 			labelTempo.style.display = 'block';
 		} else {
 			labelTempo.style.display = 'none';
@@ -688,7 +695,7 @@ function confirmarAdicionar() {
 	const descricao = document.getElementById('descricaoAdicionar').value || 'Sem descrição';
 	let tempo = 0;
 	
-	if (tipo === 'Carro' || tipo === 'ATM') {
+	if (tipo === 'Carro' || tipo === 'Minivan' || tipo === 'ATM') {
 		const tempoInput = document.getElementById('tempoAdicionarPonto').value;
 		tempo = tempoInput ? parseInt(tempoInput) : 0;
 	}
@@ -717,7 +724,7 @@ function confirmarCadastro(lat, lng) {
 	const descricao = document.getElementById('descricaoPonto').value || 'Sem descrição';
 	let tempo = 0;
 	
-	if (tipo === 'Carro' || tipo === 'ATM') {
+	if (tipo === 'Carro' || tipo === 'Minivan' || tipo === 'ATM') {
 		const tempoInput = document.getElementById('tempoPonto').value;
 		tempo = tempoInput ? parseInt(tempoInput) : 0;
 	}

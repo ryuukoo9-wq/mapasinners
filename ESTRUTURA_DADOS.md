@@ -68,7 +68,15 @@ Exemplo: `12345_67890_Carro`
   - Verde pulsante: Disponível (tempo = 0 ou timestamp = null)
   - Vermelho pulsante: Roubado (tempo > 0 e timestamp válido)
 
-### 2. ATM 🏧
+### 2. Minivan 🚐
+- **Tipo**: `"Minivan"`
+- **Tempo padrão ao roubar**: 900 segundos (15 minutos)
+- **Ícone**: Emoji 🚐
+- **Estados**:
+  - Verde pulsante: Disponível (tempo = 0 ou timestamp = null)
+  - Vermelho pulsante: Roubado (tempo > 0 e timestamp válido)
+
+### 3. ATM 🏧
 - **Tipo**: `"ATM"`
 - **Tempo padrão ao roubar**: 900 segundos (15 minutos)
 - **Ícone**: Emoji 🏧
@@ -76,7 +84,7 @@ Exemplo: `12345_67890_Carro`
   - Verde pulsante: Disponível (tempo = 0 ou timestamp = null)
   - Vermelho pulsante: Roubado (tempo > 0 e timestamp válido)
 
-### 3. NPC 👤
+### 4. NPC 👤
 - **Tipo**: `"NPC"`
 - **Tempo**: Sempre 0 (sem temporizador)
 - **Ícone**: Emoji 👤
