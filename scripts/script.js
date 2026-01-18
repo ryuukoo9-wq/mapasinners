@@ -43,6 +43,49 @@ inicializarFirebase();
 
 // ============ FIM CONFIGURAÇÃO FIREBASE ============
 
+// ============ SISTEMA DE SOM ============
+// Cria um beep usando Web Audio API
+function tocarSomNotificacao() {
+	try {
+		const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+		
+		// Primeiro beep
+		const oscillator1 = audioContext.createOscillator();
+		const gainNode1 = audioContext.createGain();
+		
+		oscillator1.connect(gainNode1);
+		gainNode1.connect(audioContext.destination);
+		
+		oscillator1.frequency.value = 800;
+		oscillator1.type = 'sine';
+		
+		gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
+		gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+		
+		oscillator1.start(audioContext.currentTime);
+		oscillator1.stop(audioContext.currentTime + 0.3);
+		
+		// Segundo beep
+		const oscillator2 = audioContext.createOscillator();
+		const gainNode2 = audioContext.createGain();
+		
+		oscillator2.connect(gainNode2);
+		gainNode2.connect(audioContext.destination);
+		
+		oscillator2.frequency.value = 1000;
+		oscillator2.type = 'sine';
+		
+		gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime + 0.15);
+		gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+		
+		oscillator2.start(audioContext.currentTime + 0.15);
+		oscillator2.stop(audioContext.currentTime + 0.5);
+	} catch (error) {
+		console.log('Erro ao tocar som:', error);
+	}
+}
+// ============ FIM SISTEMA DE SOM ============
+
 // ============ SISTEMA DE AUTENTICAÇÃO ============
 const SENHA_CORRETA = '3321';
 let usuarioAutenticado = false;
@@ -395,6 +438,9 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, 
 			if (tempoRestante <= 0) {
 				clearInterval(timerInterval);
 				delete temporizadores[markerKey];
+				
+				// Toca som de notificação
+				tocarSomNotificacao();
 				
 				// Atualiza no Firebase que o tempo zerou
 				salvarPonto(lat, lng, tipo, descricao, 0);
