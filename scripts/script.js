@@ -329,6 +329,14 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, 
 		const tempoAtualServidor = obterTimestampServidor();
 		const tempoDecorrido = Math.floor((tempoAtualServidor - timestampInicial) / 1000);
 		tempoRestante = Math.max(0, tempoInicial - tempoDecorrido);
+		
+		console.log(`[${tipo}] Calculando tempo restante:`, {
+			tempoInicial,
+			timestampInicial,
+			tempoAtualServidor,
+			tempoDecorrido,
+			tempoRestante
+		});
 	}
 	
 	// Dados do ponto
