@@ -380,8 +380,8 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, 
 		.addTo(Icons[tipo])
 		.bindPopup(atualizarPopup());
 	
-	// Inicia o temporizador se for Carro ou ATM com tempo
-	if ((tipo === 'Carro' || tipo === 'ATM') && tempoInicial > 0) {
+	// Inicia o temporizador se for Carro ou ATM com tempo restante
+	if ((tipo === 'Carro' || tipo === 'ATM') && tempoRestante > 0) {
 		const timerInterval = setInterval(() => {
 			tempoRestante--;
 			
@@ -395,6 +395,9 @@ function adicionarPontoAoMapa(lat, lng, tipo, descricao = '', tempoInicial = 0, 
 			if (tempoRestante <= 0) {
 				clearInterval(timerInterval);
 				delete temporizadores[markerKey];
+				
+				// Atualiza no Firebase que o tempo zerou
+				salvarPonto(lat, lng, tipo, descricao, 0);
 			}
 		}, 1000);
 		
