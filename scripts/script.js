@@ -257,17 +257,9 @@ function carregarPontosSalvos() {
 			// Carrega novos pontos
 			Object.keys(dados).forEach(chave => {
 				const ponto = dados[chave];
-				let tempoRestante = ponto.tempo || 0;
 				
-				// Se tem timestamp, calcula o tempo restante usando tempo do servidor
-				if (ponto.timestamp && ponto.tempo > 0) {
-					const tempoAtualServidor = obterTimestampServidor();
-					const tempoDecorrido = Math.floor((tempoAtualServidor - ponto.timestamp) / 1000);
-					tempoRestante = Math.max(0, ponto.tempo - tempoDecorrido);
-				}
-				
-				// Passa o timestamp original para manter sincronizado
-				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, tempoRestante, ponto.timestamp);
+				// Passa o tempo original e o timestamp - a função adicionarPontoAoMapa fará o cálculo
+				adicionarPontoAoMapa(ponto.lat, ponto.lng, ponto.tipo, ponto.descricao, ponto.tempo || 0, ponto.timestamp);
 			});
 		}
 	});
